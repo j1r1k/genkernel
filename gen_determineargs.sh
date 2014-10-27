@@ -118,6 +118,8 @@ determine_real_args() {
 	set_config_with_override BOOL   UNIONFS              CMD_UNIONFS
 	set_config_with_override BOOL   NETBOOT              CMD_NETBOOT
 	set_config_with_override STRING REAL_ROOT            CMD_REAL_ROOT
+	set_config_with_override BOOL   DROPBEAR             CMD_DROPBEAR             "no"
+	set_config_with_override STRING DROPBEAR_OVERLAY     CMD_DROPBEAR_OVERLAY     "/etc/genkernel.d/dropbear"
 	set_config_with_override BOOL   DISKLABEL            CMD_DISKLABEL
 	set_config_with_override BOOL   LUKS                 CMD_LUKS
 	set_config_with_override BOOL   GPG                  CMD_GPG

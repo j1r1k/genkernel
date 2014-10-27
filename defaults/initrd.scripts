@@ -955,6 +955,7 @@ openLUKS() {
 					fi
 				fi
 				# At this point, keyfile or not, we're ready!
+				echo "/sbin/cryptsetup ${cryptsetup_options} luksOpen ${LUKS_DEVICE} ${LUKS_NAME}" >> /root/unlock
 				crypt_filter "${gpg_cmd}cryptsetup ${cryptsetup_options} luksOpen ${LUKS_DEVICE} ${LUKS_NAME}"
 				crypt_filter_ret=$?
 
@@ -966,6 +967,10 @@ openLUKS() {
 				then
 					good_msg "LUKS device ${LUKS_DEVICE} opened" ${CRYPT_SILENT}
 					break
+				elif [ ${crypt_filter_ret} -eq 137 ]
+                                then
+                                        good_msg "LUKS device ${LUKS_DEVICE} opened remotely" ${CRYPT_SILENT}
+                                        break                                
 				else
 					bad_msg "Failed to open LUKS device ${LUKS_DEVICE}" ${CRYPT_SILENT}
 					DEV_ERROR=1
@@ -1315,4 +1320,44 @@ get_mount_device()
 strip_mount_options()
 {
 	sed -r 's/(,|^)(no)?auto(,|$)/,/g'
+}
+
+
+
+startNET() {
+        if [ "${NETDEV}" != '' ]
+        then
+            /bin/busybox ifconfig "${NETDEV}" up
+	    if [ $? != 0 ]
+            then
+		bad_msg "Failed to put interface up"
+		exit 1
+            fi
+        fi
+}
+
+stopNET() {
+        if [ "${NETDEV}" != '' ]
+        then
+            /bin/busybox ifconfig "${NETDEV}" down
+        fi
+}
+
+startSSH() {
+        if [ "${IP}" != '' ] || [ "${NETDEV}" != '' ] && /bin/busybox udhcpc -i "${NETDEV}" -n -T 15 -q
+        then
+            if [ ! -e /usr/sbin/dropbear ] 
+	    then 
+		bad_msg "The ramdisk does not support SSHD" && exit 1
+	    fi
+
+            /usr/sbin/dropbear -jkm -P /run/dropbear.pid 2>&1 >/dev/null
+        fi
+}
+
+stopSSH() {
+        if [ "`/bin/busybox pgrep dropbear`" != "" ]
+        then
+            /bin/busybox kill -9 `cat /run/dropbear.pid`
+        fi
 }

@@ -121,6 +121,9 @@ longusage() {
   echo "	--netboot		Create a self-contained env in the initramfs"
   echo "	--no-netboot	Exclude --netboot env"
   echo "	--real-root=<foo>	Specify a default for real_root="
+  echo "        --dropbear              Include dropbear"
+  echo "        --no-dropbear   Exclude dropbear"
+  echo "        --dropbear-overlay=<dir> Path to directory including dropbear overlay files"
   echo "  Internals"
   echo "	--arch-override=<arch>	Force to arch instead of autodetect"
   echo "	--cachedir=<dir>	Override the default cache location"
@@ -310,6 +313,14 @@ parse_cmdline() {
 		--real-root=*)
 			CMD_REAL_ROOT=`parse_opt "$*"`
 			print_info 2 "CMD_REAL_ROOT: ${CMD_REAL_ROOT}"
+			;;
+                --dropbear|--no-dropbear)
+                        CMD_DROPBEAR=`parse_optbool "$*"`
+			print_info 2 "CMD_DROPBEAR: ${CMD_DROPBEAR}"
+			;;
+	        --dropbear-overlay=*)
+		        CMD_DROPBEAR_OVERLAY=`parse_opt "$*"`
+			print_info 2 "CMD_DROPBEAR_OVERLAY: ${CMD_DROPBEAR_OVERLAY}"
 			;;
 		--dmraid|--no-dmraid)
 			CMD_DMRAID=`parse_optbool "$*"`

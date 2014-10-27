@@ -169,6 +169,9 @@ do
 		ip=*)
 			IP=${x#*=}
 		;;
+                netdev=*)
+                        NETDEV=${x#*=}
+                ;;
 		nfsroot=*)
 			NFSROOT=${x#*=}
 		;;
@@ -378,6 +381,10 @@ setup_md_device
 startVolumes
 
 setup_keymap
+
+startNET
+
+startSSH
 
 # Initialize LUKS root device except for livecd's
 if [ "${CDROOT}" != 1 ]
@@ -655,6 +662,10 @@ do
 	fi
 done
 # End determine root device
+
+stopSSH
+
+stopNET
 
 #verbose_kmsg
 

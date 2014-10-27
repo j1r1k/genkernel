@@ -786,6 +786,46 @@ append_data() {
 	fi
 }
 
+append_dropbear() {
+	local TDIR="${TEMP}/initramfs-dropbear-temp"
+	if [ -d "${TDIR}" ]
+	then
+		rm -r "${TDIR}"
+	fi
+
+	if [ -e /usr/sbin/dropbear ]
+        then
+		copy_binaries "${TEMP}"/initramfs-dropbear-temp/ /usr/sbin/dropbear
+	fi
+
+	if [ -d "${DROPBEAR_OVERLAY}" ]
+	then
+	        cp -ar "${DROPBEAR_OVERLAY}"/* "${TDIR}"
+	fi
+
+	mkdir -p ${TDIR}/root
+
+	cat >>${TDIR}/root/unlock	<<-EOF
+	#!/bin/sh
+	EOF
+
+	cat >>${TDIR}/root/boot		<<-EOF
+	#!/bin/sh
+	/bin/busybox killall -9 cryptsetup
+	EOF
+
+	chmod +x ${TDIR}/root/unlock
+	chmod +x ${TDIR}/root/boot
+
+	cd "${TDIR}"
+	log_future_cpio_content
+	find . -print | cpio ${CPIO_ARGS} --append -F "${CPIO}" \
+			|| gen_die "compressing dropbear cpio"
+
+	cd "${TEMP}"
+	rm -rf "${TDIR}" > /dev/null
+}
+
 create_initramfs() {
 	local compress_ext=""
 	print_info 1 "initramfs: >> Initializing..."
@@ -823,6 +863,9 @@ create_initramfs() {
 	append_data 'splash' "${SPLASH}"
 
 	append_data 'modprobed'
+
+	append_data 'dropbear' "${DROPBEAR}"
+
 
 	if isTrue "${FIRMWARE}" && [ -n "${FIRMWARE_DIR}" ]
 	then
